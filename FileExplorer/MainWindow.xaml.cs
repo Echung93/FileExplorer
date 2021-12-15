@@ -27,6 +27,7 @@ namespace FileExplorer
         List<string> subList1 = new List<string>();
         List<string> subList2 = new List<string>();
         TreeViewItem driveitem = new TreeViewItem();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -53,23 +54,75 @@ namespace FileExplorer
 
         private void GetDrives() //드라이브 검색
         {
-            DriveInfo[] drives = DriveInfo.GetDrives(); // 내컴퓨터 모든 드라이브 정보 얻기
-            DirectoryInfo Di;
-            Expander expander = new Expander();
-
-            foreach (DriveInfo drive in drives)
+            try
             {
-                //자식들을 추가해주려고
-                if (drive.IsReady == true) // 드라이브가 준비되었으면
+                DriveInfo[] drives = DriveInfo.GetDrives(); // 내컴퓨터 모든 드라이브 정보 얻기
+                DirectoryInfo Di;
+                Expander expander = new Expander();
+
+                foreach (DriveInfo drive in drives)
                 {
-                    Di = new DirectoryInfo(drive.Name); //경로정보 갖고오기
-                    driveitem.Header = drive.Name;//제일처음에 보이는거
-                    driveitem.Tag = Di.FullName;//전체경로를 테그에 넣고 
-                    driveitem.ToolTip = drive.Name;//마우스 위에 올려놓았을때 보이는거
+                    //자식들을 추가해주려고
+                    if (drive.IsReady == true) // 드라이브가 준비되었으면
+                    {
+                        Di = new DirectoryInfo(drive.Name); //경로정보 갖고오기
+                        driveitem.Header = drive.Name;//제일처음에 보이는거
+                        driveitem.Tag = Di.FullName;//전체경로를 테그에 넣고 
+                        driveitem.ToolTip = drive.Name;//마우스 위에 올려놓았을때 보이는거
 
-                    DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
-                    DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
+                        DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
+                        DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
 
+                        for (int i = 0; i < childrenDI.Length; i++)
+                        {  //폴더
+                            if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
+                            {
+                                TreeViewItem subItem = new TreeViewItem(); //자식들 추가
+                                subItem.Header = childrenDI[i].Name;
+                                subItem.Tag = childrenDI[i].FullName;
+                                subItem.ToolTip = childrenDI[i].Name;
+                                subItem.Expanded += SubList;
+                                driveitem.Items.Add(UpperList(subItem));
+                                subList1.Add(subItem.Tag.ToString());
+                                lbx.Items.Add(subItem.Tag);
+                            }
+                        }
+
+
+                        tvlist.Items.Add(driveitem);//전체를 추가
+                        count.Text = $"{tvlist.Items.Count} 개의 항목";
+                    }
+                }
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러 발생 : " + ex.Message);
+            }
+
+        }
+
+
+
+        private void SubList(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                subList1.Clear();
+                int count1 = 0;
+                lbx.Items.Clear();
+                TreeViewItem subList = (TreeViewItem)sender;
+
+                DirectoryInfo Di;
+                Di = new DirectoryInfo(subList.Tag.ToString());
+                DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
+                DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
+
+                currentLocation.Text = Di.FullName;
+
+                if (childrenDI.Length != 0)
+                {
+                    subList.Items.Clear();
                     for (int i = 0; i < childrenDI.Length; i++)
                     {  //폴더
                         if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
@@ -78,36 +131,59 @@ namespace FileExplorer
                             subItem.Header = childrenDI[i].Name;
                             subItem.Tag = childrenDI[i].FullName;
                             subItem.ToolTip = childrenDI[i].Name;
-                            subItem.Expanded += SubList;
-                            driveitem.Items.Add(UpperList(subItem));
-                            subList1.Add(subItem.Tag.ToString());                            
+                            subList.Items.Add(UpperList(subItem));
+                            subList1.Add(subItem.Tag.ToString());
                             lbx.Items.Add(subItem.Tag);
+                            count1++;
                         }
                     }
-
-
-                    tvlist.Items.Add(driveitem);//전체를 추가
-                    count.Text = $"{tvlist.Items.Count} 개의 항목";
+                    count.Text = $"{count1} 항목입니다.";
                 }
+
+                else
+                {
+                    lbx.Items.Add("빈 파일 입니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러 발생 : " + ex.Message);
             }
         }
 
 
-
-        private void SubList(object sender, RoutedEventArgs e)
+        private void lbx_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            subList1.Clear();
-            int count1 = 0;
-            lbx.Items.Clear();
-            TreeViewItem subList = (TreeViewItem)sender;
-
-            DirectoryInfo Di;
-            Di = new DirectoryInfo(subList.Tag.ToString());
-            DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-            if (childrenDI.Length != 0)
+            try
             {
-                subList.Items.Clear();
+                if (lbx.Items.Count != 0)
+                {
+                    int a = lbx.SelectedIndex;
+                    ClickSubList(a);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러 발생 : " + ex.Message);
+            }
+
+        }
+
+        private void ClickSubList(int a)
+        {
+            try
+            {
+                int count1 = 0;
+                lbx.Items.Clear();
+                TreeViewItem subList = new TreeViewItem();
+                DirectoryInfo Di;
+                Di = new DirectoryInfo(subList1[a]);
+                subList1.Clear();
+                DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기                
+                DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
+
+                currentLocation.Text = Di.FullName;
+
                 for (int i = 0; i < childrenDI.Length; i++)
                 {  //폴더
                     if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
@@ -115,79 +191,51 @@ namespace FileExplorer
                         TreeViewItem subItem = new TreeViewItem(); //자식들 추가
                         subItem.Header = childrenDI[i].Name;
                         subItem.Tag = childrenDI[i].FullName;
-                        subItem.ToolTip = childrenDI[i].Name;                     
-                        subList.Items.Add(UpperList(subItem));
-                        subList1.Add(subItem.Tag.ToString());
+                        subItem.ToolTip = childrenDI[i].Name;
+                        subList.Items.Add(subItem);                        
                         lbx.Items.Add(subItem.Tag);
+                        subList1.Add(childrenDI[i].FullName);                        
                         count1++;
                     }
                 }
+
                 count.Text = $"{count1} 항목입니다.";
-            }
 
-            else
+            }
+            catch (Exception ex)
             {
-                lbx.Items.Add("빈 파일 입니다.");
+                MessageBox.Show("에러 발생 : " + ex.Message);
             }
-        }
-
-
-        private void lbx_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (lbx.Items.Count != 0)
-            {
-                int a = lbx.SelectedIndex;
-                ClickSubList(a);
-            }
-
-        }
-
-        private void ClickSubList(int a)
-        {
-            int count1 = 0;
-            lbx.Items.Clear();
-            TreeViewItem subList = new TreeViewItem();
-            DirectoryInfo Di;
-            Di = new DirectoryInfo(subList1[a]);
-            subList1.Clear();
-            DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-            for (int i = 0; i < childrenDI.Length; i++)
-            {  //폴더
-                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-                {
-                    TreeViewItem subItem = new TreeViewItem(); //자식들 추가
-                    subItem.Header = childrenDI[i].Name;
-                    subItem.Tag = childrenDI[i].FullName;
-                    subItem.ToolTip = childrenDI[i].Name;
-                    subList.Items.Add(subItem);
-                    lbx.Items.Add(subItem.Tag);
-                    subList1.Add(childrenDI[i].FullName);
-                    count1++;
-                }
-            }
-
-            count.Text = $"{count1} 항목입니다.";
         }
 
         private TreeViewItem UpperList(TreeViewItem subList)
-        {            
-            subList1.Clear();           
+        {
+            try
+            {
+                subList1.Clear();
 
-            DirectoryInfo Di;
-            Di = new DirectoryInfo(subList.Tag.ToString());
-            DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-            for (int i = 0; i < childrenDI.Length; i++)
-            {  //폴더
-                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-                {
-                    TreeViewItem subItem = new TreeViewItem(); //자식들 추가
-                    subItem.Header = childrenDI[i].Name;
-                    subItem.Tag = childrenDI[i].FullName;
-                    subItem.ToolTip = childrenDI[i].Name;
-                    subList.Items.Add(subItem);
+                DirectoryInfo Di;
+                Di = new DirectoryInfo(subList.Tag.ToString());
+                DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
+                DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
+
+                currentLocation.Text = Di.FullName;
+
+                for (int i = 0; i < childrenDI.Length; i++)
+                {  //폴더
+                    if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
+                    {
+                        TreeViewItem subItem = new TreeViewItem(); //자식들 추가
+                        subItem.Header = childrenDI[i].Name;
+                        subItem.Tag = childrenDI[i].FullName;
+                        subItem.ToolTip = childrenDI[i].Name;
+                        subList.Items.Add(subItem);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러 발생 : " + ex.Message);
             }
             return subList;
         }
