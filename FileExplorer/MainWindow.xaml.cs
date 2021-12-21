@@ -193,7 +193,7 @@ namespace FileExplorer
                     subItem.Tag = childDI.FullName;
                     subItem.ToolTip = childDI.Name;
                     subItem.Expanded += List_Expanded;
-                    subItem.PreviewMouseLeftButtonUp += tvlist_MouseLeftButtonDown;
+                    subItem.PreviewMouseLeftButtonUp += Tvlist_MouseLeftButtonDown;
 
                     SubList1(subItem);
                     subList.Items.Add(subItem);
@@ -202,11 +202,11 @@ namespace FileExplorer
             }
 
             DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
-            viewList(baseDi);
+            ViewList(baseDi);
         }
 
 
-        private void tvlist_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Tvlist_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem subList = e.Source as TreeViewItem;
             lbx.Children.Clear();
@@ -220,10 +220,16 @@ namespace FileExplorer
             }
 
             DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
-            log.Push(subList.Tag.ToString()); // stack으로 log 기록!
+            if (log.Count == 0 || log.Pop() != subList.Tag.ToString())
+            {
+                log.Push(subList.Tag.ToString()); // stack으로 log 기록!
+                CheckLog();
+            }
             createLocation(subList.Tag.ToString());
 
-            viewList(baseDi);
+            ViewList(baseDi);
+
+            log.Push(subList.Tag.ToString());
         }
 
         //View에서 클릭시 List표시
@@ -232,7 +238,7 @@ namespace FileExplorer
             Button button = sender as Button;
             lbx.Children.Clear();
             subList1.Clear();
-            TreeViewItem temp  = new TreeViewItem();
+            TreeViewItem temp = new TreeViewItem();
             temp.ToolTip = button.Name;
             temp.Tag = button.Tag;
             temp.Name = button.Name;
@@ -241,8 +247,9 @@ namespace FileExplorer
 
             createLocation(button.Tag.ToString());
 
-            viewList(baseDi);
+            ViewList(baseDi);
 
+            log.Push(button.Tag.ToString());
         }
 
         private void createLocation(string a)
@@ -283,7 +290,7 @@ namespace FileExplorer
             DirectoryInfo baseDi = new DirectoryInfo(button.Content.ToString());
 
             createLocation(button.Content.ToString());
-            viewList(baseDi);
+            ViewList(baseDi);
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -294,16 +301,20 @@ namespace FileExplorer
             {
                 lbx.Children.Clear();
                 subList1.Clear();
+                
+                beforeLog.Push(log.Pop());
                 string subList = log.Pop();
-                beforeLog.Push(subList);
-                DirectoryInfo baseDi = new DirectoryInfo(subList);
+                log.Push(subList);
 
+                DirectoryInfo baseDi = new DirectoryInfo(subList);
+                ViewList(baseDi);
                 createLocation(subList);
-                viewList(baseDi);
+
+                CheckLog();
             }
         }
 
-        private void FrontButton_Click(object sender, RoutedEventArgs e)
+        private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {
             if (beforeLog.Count == 0)
                 return;
@@ -313,10 +324,12 @@ namespace FileExplorer
                 subList1.Clear();
                 string subList = beforeLog.Pop();
                 log.Push(subList);
+                
                 DirectoryInfo baseDi = new DirectoryInfo(subList);
-
+                ViewList(baseDi);
                 createLocation(subList);
-                viewList(baseDi);
+
+                CheckLog();
             }
         }
 
@@ -327,7 +340,8 @@ namespace FileExplorer
             DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
             lbx.Children.Clear();
             createLocation(home);
-            viewList(baseDi);
+            ViewList(baseDi);
+            CheckLog();
         }
 
         private ImageSource GetImage(string imageTag)
@@ -339,7 +353,7 @@ namespace FileExplorer
             return imageSource;
         }
 
-        private void viewList(DirectoryInfo directoryInfo)
+        private void ViewList(DirectoryInfo directoryInfo)
         {
             DirectoryInfo[] childrenDI = directoryInfo.GetDirectories();
             lbx.Children.Clear();
@@ -373,7 +387,7 @@ namespace FileExplorer
                         button.ToolTip = childrenDI[i].Name.ToString();
                         button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
                         button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-                        
+
                         wrapPanel.Children.Add(button);
                         wrapPanel.Children.Add(textBlock);
                         lbx.Children.Add(wrapPanel);
@@ -412,7 +426,7 @@ namespace FileExplorer
                     //button.ToolTip = file.Name.ToString();
                     //button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
                     //button.Background = new ImageBrush(GetImage(file.FullName));
-                    
+
                     //wrapPanel.Children.Add(button);
                     wrapPanel.Children.Add(textBlock);
                     lbx.Children.Add(wrapPanel);
@@ -424,6 +438,27 @@ namespace FileExplorer
             catch (Exception ex)
             {
                 MessageBox.Show("에러 발생 : " + ex.Message);
+            }
+        }
+
+        private void CheckLog()
+        {
+            if (log.Count > 0)
+            {
+                backButton.IsEnabled = true;
+            }
+            else
+            {
+                backButton.IsEnabled = false;
+            }
+
+            if (beforeLog.Count > 0)
+            {
+                forwardButton.IsEnabled = true;
+            }
+            else
+            {
+                forwardButton.IsEnabled = false;
             }
         }
     }
