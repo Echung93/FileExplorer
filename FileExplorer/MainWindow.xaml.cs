@@ -24,10 +24,10 @@ namespace FileExplorer
     {/// <summary>
      /// MainWindow.xaml에 대한 상호 작용 논리
      /// </summary>
-        List<string> subList1 = new List<string>();
-        Stack<string> log = new Stack<string>();
-        Stack<string> beforeLog = new Stack<string>();
-        TreeViewItem driveitem = new TreeViewItem();
+        public List<string> subList1 = new List<string>();
+        public Stack<string> log = new Stack<string>();
+        public Stack<string> beforeLog = new Stack<string>();
+        public TreeViewItem driveitem = new TreeViewItem();
 
 
         string c;
@@ -36,25 +36,23 @@ namespace FileExplorer
         {
             InitializeComponent();
             GetDrives();
-
-            ////Icon icon = System.Drawing.Icon.ExtractAssociatedIcon("4일차 스터디.pdf");
-            //ImageSource imgSource = null;
-
-            //using (System.Drawing.Icon sysicon = System.Drawing.Icon.ExtractAssociatedIcon("4일차 스터디.pdf"))
-            //{
-            //    imgSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(sysicon.Handle,
-            //    System.Windows.Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
-            //}
-
-            //image.Source = imgSource;
         }
 
-        //private void Button_Click(object sender, RoutedEventArgs e)
-        //{
-        //    System.Diagnostics.Process run = new System.Diagnostics.Process();
-        //    run.StartInfo.FileName = "4일차 스터디.pdf";
-        //    run.Start();
-        //}
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Button viewImage = (Button)e.Source;
+                System.Diagnostics.Process run = new System.Diagnostics.Process();
+                run.StartInfo.FileName = viewImage.Tag.ToString();
+                run.Start();
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러 발생 : " + ex.Message);
+            }
+        }
 
         private void GetDrives() //드라이브 검색
         {
@@ -85,18 +83,18 @@ namespace FileExplorer
                                 subItem.Header = childrenDI[i].Name;
                                 subItem.Tag = childrenDI[i].FullName;
                                 subItem.ToolTip = childrenDI[i].Name;
-
                                 subItem.Expanded += new RoutedEventHandler(List_Expanded); // 하위 폴더 
+
                                 driveitem.Items.Add(subItem);
                                 SubList1(subItem);
-                                //subList1.Add(subItem.Tag.ToString());
-                                //lbx.Items.Add(subItem.Tag);
+
                             }
                         }
 
 
                         tvlist.Items.Add(driveitem);//전체를 추가
                         count.Text = $"{tvlist.Items.Count} 개의 항목";
+                        lbx.Children.Clear();
                     }
                 }
             }
@@ -106,120 +104,11 @@ namespace FileExplorer
                 MessageBox.Show("에러 발생 : " + ex.Message);
             }
 
-        }
-
-
-
-        //private void SubList(object sender, RoutedEventArgs e)
-        //{
-        //    try
-        //    {
-        //        subList1.Clear();
-        //        int count1 = 0;
-        //        lbx.Items.Clear();
-        //        TreeViewItem subList = sender as TreeViewItem;
-        //        Console.WriteLine(subList);
-        //        DirectoryInfo Di;
-        //        Di = new DirectoryInfo(subList.Tag.ToString());
-        //        DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
-        //        DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-
-        //        currentLocation.Text = Di.FullName;
-
-        //        if (childrenDI.Length != 0)
-        //        {
-        //            subList.Items.Clear();
-        //            for (int i = 0; i < childrenDI.Length; i++)
-        //            {  //폴더
-        //                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-        //                {
-        //                    TreeViewItem subItem = new TreeViewItem(); //자식들 추가
-        //                    subItem.Header = childrenDI[i].Name;
-        //                    subItem.Tag = childrenDI[i].FullName;
-        //                    subItem.ToolTip = childrenDI[i].Name;
-        //                    subList.Items.Add(UpperList(subItem));
-        //                    subList1.Add(subItem.Tag.ToString());
-        //                    lbx.Items.Add(subItem.Tag);
-        //                    count1++;
-        //                }
-        //            }
-        //            count.Text = $"{count1} 항목입니다.";
-        //        }
-
-        //        else
-        //        {
-        //            lbx.Items.Add("빈 파일 입니다.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("에러 발생 : " + ex.Message);
-        //    }
-        //}
-
-
-        private void lbx_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //try
-            //{
-            //    if (lbx.Items.Count != 0)
-            //    {
-            //        int a = lbx.SelectedIndex;
-            //        ClickSubList(a);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show("에러 발생 : " + ex.Message);
-            //}
-
-        }
-
-
-        private void ClickSubList(int a)
-        {
-            try
-            {
-                int count1 = 0;
-                //lbx.Items.Clear();
-                TreeViewItem subList = new TreeViewItem();
-                DirectoryInfo Di;
-                Di = new DirectoryInfo(subList1[a]);
-                subList1.Clear();
-                DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기                
-                DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-
-
-                for (int i = 0; i < childrenDI.Length; i++)
-                {  //폴더
-                    if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-                    {
-                        TreeViewItem subItem = new TreeViewItem(); //자식들 추가
-                        subItem.Header = childrenDI[i].Name;
-                        subItem.Tag = childrenDI[i].FullName;
-                        subItem.ToolTip = childrenDI[i].Name;
-                        subList.Items.Add(subItem);
-                        //lbx.Items.Add(subItem.Tag);
-                        subList1.Add(childrenDI[i].FullName);
-                        count1++;
-                    }
-                }
-
-                count.Text = $"{count1} 항목입니다.";
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("에러 발생 : " + ex.Message);
-            }
         }
 
         private void SubList1(TreeViewItem subList)
         {
-            if (subList == null || subList.Items.Count != 0)
-            {
-                return;
-            }
+            lbx.Children.Clear();
 
             try
             {
@@ -234,10 +123,41 @@ namespace FileExplorer
                         subItem.Header = childrenDI[i].Name;
                         subItem.Tag = childrenDI[i].FullName;
                         subItem.ToolTip = childrenDI[i].Name;
-                        subItem.Expanded += new RoutedEventHandler(List_Expanded);
+                        //subItem.Expanded += new RoutedEventHandler(List_Expanded);
                         subList.Items.Add(subItem);
                     }
                 }
+
+                //    // 파일
+                //    FileInfo[] files = baseDi.GetFiles();
+
+                //    var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+
+                //    foreach (var file in filtered)
+                //    {
+                //        WrapPanel wrapPanel = new WrapPanel();
+                //        wrapPanel.Width = 100;
+                //        wrapPanel.Height = 100;
+
+                //        Button button = new Button();
+                //        button.Background = new ImageBrush(GetImage(file.FullName));
+                //        button.BorderThickness = new Thickness(0);
+                //        button.Height = 80;
+                //        button.Width = 60;
+                //        button.Tag = file.ToString();
+                //        button.MouseDoubleClick += Button_Click;
+                //        wrapPanel.Children.Add(button);
+
+                //        TextBlock textBlock = new TextBlock();
+                //        textBlock.Text = file.Name;
+                //        textBlock.TextWrapping = TextWrapping.Wrap;
+                //        textBlock.Width = 90;
+                //        wrapPanel.Children.Add(textBlock);
+                //        lbx.Children.Add(wrapPanel);
+                //    }
+
+                //항목 개수 표시
+                count.Text = $"{lbx.Children.Count}개 항목";
             }
             catch (Exception ex)
             {
@@ -248,63 +168,62 @@ namespace FileExplorer
         private void List_Expanded(object sender, RoutedEventArgs e)
         {
             TreeViewItem subList = e.Source as TreeViewItem;
-            //lbx.Items.Clear();
+
+
+            //if (subList == null || subList.Items.Count == 0)
+            //{
+            //    return;
+            //}
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(subList.Tag.ToString());
+            DirectoryInfo[] childrenDI = directoryInfo.GetDirectories(); // 하위 디렉토리 불러오기
+
+            subList.Items.Clear();
+
+            lbx.Children.Clear();
             createLocation(subList.Tag.ToString());
             subList1.Clear();
-            if (subList == null || subList.Items.Count == 0)
+
+            foreach (DirectoryInfo childDI in childrenDI)
             {
-                return;
+                if ((childDI.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)  // 숨겨진 파일 아닌 것만 
+                {
+                    TreeViewItem subItem = new TreeViewItem(); //자식들 추가
+                    subItem.Header = childDI.Name;
+                    subItem.Tag = childDI.FullName;
+                    subItem.ToolTip = childDI.Name;
+                    subItem.Expanded += List_Expanded;
+                    subItem.PreviewMouseLeftButtonUp += tvlist_MouseLeftButtonDown;
+
+                    SubList1(subItem);
+                    subList.Items.Add(subItem);
+
+                }
             }
 
-            foreach (TreeViewItem item in subList.Items)
-            {
-                SubList1(item);
-                subList1.Add(item.Tag.ToString());
-            }
+            DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
+            viewList(baseDi);
         }
+
 
         private void tvlist_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem subList = e.Source as TreeViewItem;
-
             lbx.Children.Clear();
             subList1.Clear();
 
-            if (subList == null || subList.Items.Count == 0)
+
+            if (subList == null)
             {
                 lbx.Children.Clear();
                 return;
             }
 
+            DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
             log.Push(subList.Tag.ToString()); // stack으로 log 기록!
             createLocation(subList.Tag.ToString());
 
-            foreach (TreeViewItem item in subList.Items)
-            {
-                SubList1(item);
-                //lbx.Items.Add(item.Tag);
-                //lbx.Items.Add(makeFolder(item.Header));
-                subList1.Add(item.Tag.ToString());
-                WrapPanel wrapPanel = new WrapPanel();
-                wrapPanel.Orientation = Orientation.Vertical;
-                wrapPanel.Width = 100;
-                wrapPanel.Height = 100;
-                Button button = new Button();
-                TextBlock textBlock = new TextBlock();
-                textBlock.Text = item.Header.ToString();
-                textBlock.Width = 90;
-                textBlock.TextWrapping = TextWrapping.Wrap;
-                button.Width = 100;
-                button.Tag = item.Tag.ToString();
-                button.ToolTip = item.ToolTip.ToString();
-                button.Height = 60;
-                button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
-                button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-                //wrapPanel.Children.Add(button);
-                wrapPanel.Children.Add(button);
-                wrapPanel.Children.Add(textBlock);
-                lbx.Children.Add(wrapPanel);
-            }
+            viewList(baseDi);
         }
 
         private void Button_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -314,87 +233,50 @@ namespace FileExplorer
             subList1.Clear();
 
             DirectoryInfo baseDi = new DirectoryInfo(button.Tag.ToString());
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
 
             createLocation(button.Tag.ToString());
-            for (int i = 0; i < childrenDI.Length; i++)
-            {  //폴더
-                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-                {
-                    WrapPanel wrapPanel = new WrapPanel();
-                    wrapPanel.Orientation = Orientation.Vertical;
-                    wrapPanel.Width = 100;
-                    wrapPanel.Height = 100;
-                    button = new Button();
-                    TextBlock textBlock = new TextBlock();
-                    textBlock.Text = childrenDI[i].Name.ToString();
-                    textBlock.Width = 90;
-                    textBlock.TextWrapping = TextWrapping.Wrap;
-                    button.Width = 100;
-                    button.Height = 60;
-                    button.Tag = childrenDI[i].FullName.ToString();
-                    button.ToolTip = childrenDI[i].Name.ToString();
-                    button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
-                    button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-                    wrapPanel.Children.Add(button);
-                    wrapPanel.Children.Add(textBlock);
-                    lbx.Children.Add(wrapPanel);
-                }
-            }
+
+            viewList(baseDi);
+            //Button_Click_List_Expanded(baseDi);
         }
 
-        //private TreeViewItem UpperList(TreeViewItem subList)
+        //private void Button_Click_List_Expanded(DirectoryInfo directoryInfo1)
         //{
-        //    try
+        //    TreeViewItem subItem = new TreeViewItem();
+        //    subItem.Tag = 
+        //    DirectoryInfo directoryInfo = new DirectoryInfo(subList.Tag.ToString());
+        //    DirectoryInfo[] childrenDI = directoryInfo.GetDirectories(); // 하위 디렉토리 불러오기
+
+        //    subList.Items.Clear();
+
+        //    lbx.Children.Clear();
+        //    createLocation(info);
+        //    subList1.Clear();
+
+        //    foreach (DirectoryInfo childDI in childrenDI)
         //    {
-        //        subList1.Clear();
+        //        if ((childDI.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)  // 숨겨진 파일 아닌 것만 
+        //        {
+        //            TreeViewItem subItem = new TreeViewItem(); //자식들 추가
+        //            subItem.Header = childDI.Name;
+        //            subItem.Tag = childDI.FullName;
+        //            subItem.ToolTip = childDI.Name;
+        //            subItem.Expanded += List_Expanded;
+        //            subItem.PreviewMouseLeftButtonUp += tvlist_MouseLeftButtonDown;
 
-        //        DirectoryInfo Di;
-        //        Di = new DirectoryInfo(subList.Tag.ToString());
-        //        DirectoryInfo baseDi = new DirectoryInfo(Di.FullName); //경로 받아오기
-        //        DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
+        //            SubList1(subItem);
+        //            subList.Items.Add(subItem);
 
-        //        currentLocation.Text = Di.FullName;
-
-        //        for (int i = 0; i < childrenDI.Length; i++)
-        //        {  //폴더
-        //            if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-        //            {
-        //                TreeViewItem subItem = new TreeViewItem(); //자식들 추가
-        //                subItem.Header = childrenDI[i].Name;
-        //                subItem.Tag = childrenDI[i].FullName;
-        //                subItem.ToolTip = childrenDI[i].Name;
-        //                subList.Items.Add(subItem);
-        //            }
         //        }
         //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("에러 발생 : " + ex.Message);
-        //    }
-        //    return subList;
+        //    //foreach (TreeViewItem item in subList.Items)
+        //    //{
+        //    //    SubList1(item);
+        //    //    subList.Items.Add(item);
+        //    //}
+        //    //DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
+        //    //viewList(baseDi);
         //}
-
-        //private WrapPanel makeFolder(object item)
-        //{
-        //    Button button = new Button();
-        //    TextBlock textBlock = new TextBlock();
-        //    textBlock.Text = item.ToString() ;
-        //    button.Width = 40;
-        //    button.Height = 40;
-        //    button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-
-        //    subFolder.Children.Add(button);
-        //    subFolder.Children.Add(textBlock);
-
-        //    return subFolder;
-        //}
-
-        private void Click(object sender, MouseButtonEventArgs e)
-        {
-            Button button = sender as Button;
-        }
-
         private void createLocation(string a)
         {
             currentLocation.Children.Clear();
@@ -405,18 +287,22 @@ namespace FileExplorer
 
             for (int i = 0; i < split.Length; i++)
             {
-                b = split[i] + '\\';
-                c += b;
-                WrapPanel wrapPanel = new WrapPanel();
-                wrapPanel.Orientation = Orientation.Vertical;
-                wrapPanel.Height = 20;
-                Button button = new Button();
-                button.Height = 20;
-                button.Tag = c;
-                button.Content = split[i];
-                button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
-                wrapPanel.Children.Add(button);
-                currentLocation.Children.Add(wrapPanel);
+                if (split[i] != "")
+                {
+                    b = split[i] + '\\';
+                    c += b;
+                    WrapPanel wrapPanel = new WrapPanel();
+                    wrapPanel.Orientation = Orientation.Vertical;
+                    wrapPanel.Height = 20;
+                    Button button = new Button();
+                    button.Height = 20;
+                    button.Tag = c;
+                    button.Content = split[i];
+                    button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
+                    wrapPanel.Children.Add(button);
+                    currentLocation.Children.Add(wrapPanel);
+                }
+
             }
         }
 
@@ -427,32 +313,9 @@ namespace FileExplorer
             subList1.Clear();
 
             DirectoryInfo baseDi = new DirectoryInfo(button.Content.ToString());
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
 
             createLocation(button.Content.ToString());
-            for (int i = 0; i < childrenDI.Length; i++)
-            {  //폴더
-                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-                {
-                    WrapPanel wrapPanel = new WrapPanel();
-                    wrapPanel.Orientation = Orientation.Vertical;
-                    wrapPanel.Width = 100;
-                    wrapPanel.Height = 100;
-                    button = new Button();
-                    TextBlock textBlock = new TextBlock();
-                    textBlock.Text = childrenDI[i].Name.ToString();
-                    textBlock.Width = 90;
-                    textBlock.TextWrapping = TextWrapping.Wrap;
-                    button.Width = 100;
-                    button.Height = 60;
-                    button.Tag = childrenDI[i].FullName.ToString();
-                    button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
-                    button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-                    wrapPanel.Children.Add(button);
-                    wrapPanel.Children.Add(textBlock);
-                    lbx.Children.Add(wrapPanel);
-                }
-            }
+            viewList(baseDi);
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -466,34 +329,12 @@ namespace FileExplorer
                 string subList = log.Pop();
                 beforeLog.Push(subList);
                 DirectoryInfo baseDi = new DirectoryInfo(subList);
-                DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
 
                 createLocation(subList);
-                for (int i = 0; i < childrenDI.Length; i++)
-                {  //폴더
-                    if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
-                    {
-                        WrapPanel wrapPanel = new WrapPanel();
-                        wrapPanel.Orientation = Orientation.Vertical;
-                        wrapPanel.Width = 100;
-                        wrapPanel.Height = 100;
-                        Button button = new Button();
-                        TextBlock textBlock = new TextBlock();
-                        textBlock.Text = childrenDI[i].Name.ToString();
-                        textBlock.Width = 90;
-                        textBlock.TextWrapping = TextWrapping.Wrap;
-                        button.Width = 100;
-                        button.Height = 60;
-                        button.Tag = childrenDI[i].FullName.ToString();
-                        button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
-                        button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-                        wrapPanel.Children.Add(button);
-                        wrapPanel.Children.Add(textBlock);
-                        lbx.Children.Add(wrapPanel);
-                    }
-                }
+                viewList(baseDi);
             }
         }
+
 
         private void FrontButton_Click(object sender, RoutedEventArgs e)
         {
@@ -506,13 +347,48 @@ namespace FileExplorer
                 string subList = beforeLog.Pop();
                 log.Push(subList);
                 DirectoryInfo baseDi = new DirectoryInfo(subList);
-                DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
 
                 createLocation(subList);
+                viewList(baseDi);
+            }
+        }
+
+        private void HomeButton_Click(object sender, RoutedEventArgs e)
+        {
+            string home = "C:";
+            DirectoryInfo baseDi = new DirectoryInfo(home);
+            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
+            lbx.Children.Clear();
+            createLocation(home);
+            viewList(baseDi);
+        }
+
+        private ImageSource GetImage(string imageTag)
+        {
+            System.Drawing.Icon sysicon = System.Drawing.Icon.ExtractAssociatedIcon(imageTag);
+            ImageSource imageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(sysicon.Handle,
+            System.Windows.Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+
+            return imageSource;
+        }
+
+        private void viewList(DirectoryInfo directoryInfo)
+        {
+            DirectoryInfo[] childrenDI = directoryInfo.GetDirectories();
+            lbx.Children.Clear();
+
+            try
+            {
                 for (int i = 0; i < childrenDI.Length; i++)
                 {  //폴더
                     if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
                     {
+                        TreeViewItem subItem = new TreeViewItem();
+                        subItem.Header = childrenDI[i].Name;
+                        subItem.Tag = childrenDI[i].FullName;
+                        subItem.ToolTip = childrenDI[i].Name;
+                        subItem.Expanded += new RoutedEventHandler(List_Expanded);
+
                         WrapPanel wrapPanel = new WrapPanel();
                         wrapPanel.Orientation = Orientation.Vertical;
                         wrapPanel.Width = 100;
@@ -525,45 +401,49 @@ namespace FileExplorer
                         button.Width = 100;
                         button.Height = 60;
                         button.Tag = childrenDI[i].FullName.ToString();
-                        button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
+                        button.ToolTip = childrenDI[i].Name.ToString();
+                        button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
                         button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
                         wrapPanel.Children.Add(button);
                         wrapPanel.Children.Add(textBlock);
                         lbx.Children.Add(wrapPanel);
                     }
                 }
-            }
-        }
 
-        private void HomeButton_Click(object sender, RoutedEventArgs e)
-        {
-            string home = "C:";
-            DirectoryInfo baseDi = new DirectoryInfo(home);
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-            lbx.Children.Clear();
-            createLocation(home);
-            for (int i = 0; i < childrenDI.Length; i++)
-            {  //폴더
-                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
+                // 파일 불러오기
+                FileInfo[] files = directoryInfo.GetFiles();
+
+                var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+
+                foreach (var file in filtered)
                 {
                     WrapPanel wrapPanel = new WrapPanel();
-                    wrapPanel.Orientation = Orientation.Vertical;
                     wrapPanel.Width = 100;
                     wrapPanel.Height = 100;
+
                     Button button = new Button();
-                    TextBlock textBlock = new TextBlock();
-                    textBlock.Text = childrenDI[i].Name.ToString();
-                    textBlock.Width = 90;
-                    textBlock.TextWrapping = TextWrapping.Wrap;
-                    button.Width = 100;
-                    button.Height = 60;
-                    button.Tag = childrenDI[i].FullName.ToString();
-                    button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
-                    button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
+                    button.Background = new ImageBrush(GetImage(file.FullName));
+                    button.BorderThickness = new Thickness(0);
+                    button.Height = 80;
+                    button.Width = 60;
+                    button.Tag = file.FullName.ToString();
+                    button.MouseDoubleClick += Button_Click;
                     wrapPanel.Children.Add(button);
+
+                    TextBlock textBlock = new TextBlock();
+                    textBlock.Text = file.Name;
+                    textBlock.TextWrapping = TextWrapping.Wrap;
+                    textBlock.Width = 90;
                     wrapPanel.Children.Add(textBlock);
                     lbx.Children.Add(wrapPanel);
                 }
+
+                // 항목 개수 표시
+                count.Text = $"{lbx.Children.Count}개 항목";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러 발생 : " + ex.Message);
             }
         }
     }
