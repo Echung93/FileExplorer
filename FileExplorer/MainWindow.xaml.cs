@@ -226,57 +226,25 @@ namespace FileExplorer
             viewList(baseDi);
         }
 
+        //View에서 클릭시 List표시
         private void Button_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Button button = sender as Button;
             lbx.Children.Clear();
             subList1.Clear();
+            TreeViewItem temp  = new TreeViewItem();
+            temp.ToolTip = button.Name;
+            temp.Tag = button.Tag;
+            temp.Name = button.Name;
 
             DirectoryInfo baseDi = new DirectoryInfo(button.Tag.ToString());
 
             createLocation(button.Tag.ToString());
 
             viewList(baseDi);
-            //Button_Click_List_Expanded(baseDi);
+
         }
 
-        //private void Button_Click_List_Expanded(DirectoryInfo directoryInfo1)
-        //{
-        //    TreeViewItem subItem = new TreeViewItem();
-        //    subItem.Tag = 
-        //    DirectoryInfo directoryInfo = new DirectoryInfo(subList.Tag.ToString());
-        //    DirectoryInfo[] childrenDI = directoryInfo.GetDirectories(); // 하위 디렉토리 불러오기
-
-        //    subList.Items.Clear();
-
-        //    lbx.Children.Clear();
-        //    createLocation(info);
-        //    subList1.Clear();
-
-        //    foreach (DirectoryInfo childDI in childrenDI)
-        //    {
-        //        if ((childDI.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)  // 숨겨진 파일 아닌 것만 
-        //        {
-        //            TreeViewItem subItem = new TreeViewItem(); //자식들 추가
-        //            subItem.Header = childDI.Name;
-        //            subItem.Tag = childDI.FullName;
-        //            subItem.ToolTip = childDI.Name;
-        //            subItem.Expanded += List_Expanded;
-        //            subItem.PreviewMouseLeftButtonUp += tvlist_MouseLeftButtonDown;
-
-        //            SubList1(subItem);
-        //            subList.Items.Add(subItem);
-
-        //        }
-        //    }
-        //    //foreach (TreeViewItem item in subList.Items)
-        //    //{
-        //    //    SubList1(item);
-        //    //    subList.Items.Add(item);
-        //    //}
-        //    //DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
-        //    //viewList(baseDi);
-        //}
         private void createLocation(string a)
         {
             currentLocation.Children.Clear();
@@ -335,7 +303,6 @@ namespace FileExplorer
             }
         }
 
-
         private void FrontButton_Click(object sender, RoutedEventArgs e)
         {
             if (beforeLog.Count == 0)
@@ -393,17 +360,20 @@ namespace FileExplorer
                         wrapPanel.Orientation = Orientation.Vertical;
                         wrapPanel.Width = 100;
                         wrapPanel.Height = 100;
-                        Button button = new Button();
+
                         TextBlock textBlock = new TextBlock();
                         textBlock.Text = childrenDI[i].Name.ToString();
                         textBlock.Width = 90;
                         textBlock.TextWrapping = TextWrapping.Wrap;
+
+                        Button button = new Button();
                         button.Width = 100;
                         button.Height = 60;
                         button.Tag = childrenDI[i].FullName.ToString();
                         button.ToolTip = childrenDI[i].Name.ToString();
                         button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
                         button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
+                        
                         wrapPanel.Children.Add(button);
                         wrapPanel.Children.Add(textBlock);
                         lbx.Children.Add(wrapPanel);
@@ -423,8 +393,8 @@ namespace FileExplorer
 
                     Button button = new Button();
                     button.Background = new ImageBrush(GetImage(file.FullName));
-                    button.BorderThickness = new Thickness(0);
-                    button.Height = 80;
+                    button.Margin = new Thickness(5);
+                    button.Height = 60;
                     button.Width = 60;
                     button.Tag = file.FullName.ToString();
                     button.MouseDoubleClick += Button_Click;
@@ -434,6 +404,16 @@ namespace FileExplorer
                     textBlock.Text = file.Name;
                     textBlock.TextWrapping = TextWrapping.Wrap;
                     textBlock.Width = 90;
+
+                    //Button button = new Button();
+                    //button.Width = 100;
+                    //button.Height = 60;
+                    //button.Tag = file.FullName.ToString();
+                    //button.ToolTip = file.Name.ToString();
+                    //button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
+                    //button.Background = new ImageBrush(GetImage(file.FullName));
+                    
+                    //wrapPanel.Children.Add(button);
                     wrapPanel.Children.Add(textBlock);
                     lbx.Children.Add(wrapPanel);
                 }
