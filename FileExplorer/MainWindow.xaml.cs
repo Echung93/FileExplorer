@@ -29,8 +29,7 @@ namespace FileExplorer
         public Stack<string> beforeLog = new Stack<string>();
         public TreeViewItem driveitem = new TreeViewItem();
 
-
-        string c;
+        public string currentLocations;
 
         public MainWindow()
         {
@@ -42,7 +41,7 @@ namespace FileExplorer
         {
             try
             {
-                Button viewImage = (Button)e.Source;
+                Button viewImage = e.Source as Button;
                 System.Diagnostics.Process run = new System.Diagnostics.Process();
                 run.StartInfo.FileName = viewImage.Tag.ToString();
                 run.Start();
@@ -94,7 +93,7 @@ namespace FileExplorer
 
                         tvlist.Items.Add(driveitem);//전체를 추가
                         count.Text = $"{tvlist.Items.Count} 개의 항목";
-                        lbx.Children.Clear();
+                        viewer.Children.Clear();
                     }
                 }
             }
@@ -108,7 +107,7 @@ namespace FileExplorer
 
         private void SubList1(TreeViewItem subList)
         {
-            lbx.Children.Clear();
+            viewer.Children.Clear();
 
             try
             {
@@ -153,11 +152,11 @@ namespace FileExplorer
                 //        textBlock.TextWrapping = TextWrapping.Wrap;
                 //        textBlock.Width = 90;
                 //        wrapPanel.Children.Add(textBlock);
-                //        lbx.Children.Add(wrapPanel);
+                //        viewer.Children.Add(wrapPanel);
                 //    }
 
                 //항목 개수 표시
-                count.Text = $"{lbx.Children.Count}개 항목";
+                count.Text = $"{viewer.Children.Count}개 항목";
             }
             catch (Exception ex)
             {
@@ -169,19 +168,13 @@ namespace FileExplorer
         {
             TreeViewItem subList = e.Source as TreeViewItem;
 
-
-            //if (subList == null || subList.Items.Count == 0)
-            //{
-            //    return;
-            //}
-
             DirectoryInfo directoryInfo = new DirectoryInfo(subList.Tag.ToString());
             DirectoryInfo[] childrenDI = directoryInfo.GetDirectories(); // 하위 디렉토리 불러오기
 
             subList.Items.Clear();
 
-            lbx.Children.Clear();
-            createLocation(subList.Tag.ToString());
+            viewer.Children.Clear();
+            CreateLocation(subList.Tag.ToString());
             subList1.Clear();
 
             foreach (DirectoryInfo childDI in childrenDI)
@@ -209,34 +202,32 @@ namespace FileExplorer
         private void Tvlist_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem subList = e.Source as TreeViewItem;
-            lbx.Children.Clear();
+            viewer.Children.Clear();
             subList1.Clear();
 
 
             if (subList == null)
             {
-                lbx.Children.Clear();
+                viewer.Children.Clear();
                 return;
             }
 
             DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
-            if (log.Count == 0 || log.Pop() != subList.Tag.ToString())
-            {
-                log.Push(subList.Tag.ToString()); // stack으로 log 기록!
-                CheckLog();
-            }
-            createLocation(subList.Tag.ToString());
+            
+            CheckLog(subList.Tag.ToString());
+            beforeLog.Clear();
+            CheckLogButton();
+
+            CreateLocation(subList.Tag.ToString());
 
             ViewList(baseDi);
-
-            log.Push(subList.Tag.ToString());
         }
 
         //View에서 클릭시 List표시
         private void Button_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Button button = sender as Button;
-            lbx.Children.Clear();
+            viewer.Children.Clear();
             subList1.Clear();
             TreeViewItem temp = new TreeViewItem();
             temp.ToolTip = button.Name;
@@ -245,33 +236,35 @@ namespace FileExplorer
 
             DirectoryInfo baseDi = new DirectoryInfo(button.Tag.ToString());
 
-            createLocation(button.Tag.ToString());
+            CheckLog(button.Tag.ToString());
+            beforeLog.Clear();
+            CheckLogButton();
+
+            CreateLocation(button.Tag.ToString());
 
             ViewList(baseDi);
-
-            log.Push(button.Tag.ToString());
         }
 
-        private void createLocation(string a)
+        private void CreateLocation(string a)
         {
             currentLocation.Children.Clear();
 
             string[] split = a.Split('\\');
             string b;
-            c = null;
+            currentLocations = null;
 
             for (int i = 0; i < split.Length; i++)
             {
                 if (split[i] != "")
                 {
                     b = split[i] + '\\';
-                    c += b;
+                    currentLocations += b;
                     WrapPanel wrapPanel = new WrapPanel();
                     wrapPanel.Orientation = Orientation.Vertical;
                     wrapPanel.Height = 20;
                     Button button = new Button();
                     button.Height = 20;
-                    button.Tag = c;
+                    button.Tag = currentLocations;
                     button.Content = split[i];
                     button.PreviewMouseLeftButtonDown += Button_PreviewMouseDoubleClick;
                     wrapPanel.Children.Add(button);
@@ -281,15 +274,15 @@ namespace FileExplorer
             }
         }
 
-        private void currentLaction_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void currentLocation_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Button button = sender as Button;
-            lbx.Children.Clear();
+            viewer.Children.Clear();
             subList1.Clear();
 
             DirectoryInfo baseDi = new DirectoryInfo(button.Content.ToString());
 
-            createLocation(button.Content.ToString());
+            CreateLocation(button.Content.ToString());
             ViewList(baseDi);
         }
 
@@ -297,21 +290,29 @@ namespace FileExplorer
         {
             if (log.Count == 0)
                 return;
+
+            else if (log.Count == 1)
+            {
+                viewer.Children.Clear();
+                currentLocation.Children.Clear();
+                beforeLog.Push(log.Pop());
+            }
+
             else
             {
-                lbx.Children.Clear();
+                viewer.Children.Clear();
                 subList1.Clear();
-                
+
                 beforeLog.Push(log.Pop());
                 string subList = log.Pop();
                 log.Push(subList);
 
                 DirectoryInfo baseDi = new DirectoryInfo(subList);
                 ViewList(baseDi);
-                createLocation(subList);
-
-                CheckLog();
+                CreateLocation(subList);                
             }
+
+            CheckLogButton();
         }
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
@@ -320,28 +321,27 @@ namespace FileExplorer
                 return;
             else
             {
-                lbx.Children.Clear();
+                viewer.Children.Clear();
                 subList1.Clear();
                 string subList = beforeLog.Pop();
                 log.Push(subList);
-                
+
                 DirectoryInfo baseDi = new DirectoryInfo(subList);
                 ViewList(baseDi);
-                createLocation(subList);
+                CreateLocation(subList);
 
-                CheckLog();
+                CheckLogButton();
             }
         }
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
         {
-            string home = "C:";
+            string home = "C:\\";
             DirectoryInfo baseDi = new DirectoryInfo(home);
-            DirectoryInfo[] childrenDI = baseDi.GetDirectories(); //경로안에 디렉토리 모두 알려주기
-            lbx.Children.Clear();
-            createLocation(home);
+            viewer.Children.Clear();
+            CreateLocation(home);
             ViewList(baseDi);
-            CheckLog();
+            CheckLogButton();
         }
 
         private ImageSource GetImage(string imageTag)
@@ -356,12 +356,14 @@ namespace FileExplorer
         private void ViewList(DirectoryInfo directoryInfo)
         {
             DirectoryInfo[] childrenDI = directoryInfo.GetDirectories();
-            lbx.Children.Clear();
+            viewer.Children.Clear();
+            search.Text = "";
 
             try
             {
                 for (int i = 0; i < childrenDI.Length; i++)
-                {  //폴더
+                {  
+                    //폴더
                     if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
                     {
                         TreeViewItem subItem = new TreeViewItem();
@@ -390,14 +392,14 @@ namespace FileExplorer
 
                         wrapPanel.Children.Add(button);
                         wrapPanel.Children.Add(textBlock);
-                        lbx.Children.Add(wrapPanel);
+                        viewer.Children.Add(wrapPanel);
                     }
                 }
 
                 // 파일 불러오기
                 FileInfo[] files = directoryInfo.GetFiles();
 
-                var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+                var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden)); //숨겨진 파일 아닌것만
 
                 foreach (var file in filtered)
                 {
@@ -419,21 +421,12 @@ namespace FileExplorer
                     textBlock.TextWrapping = TextWrapping.Wrap;
                     textBlock.Width = 90;
 
-                    //Button button = new Button();
-                    //button.Width = 100;
-                    //button.Height = 60;
-                    //button.Tag = file.FullName.ToString();
-                    //button.ToolTip = file.Name.ToString();
-                    //button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
-                    //button.Background = new ImageBrush(GetImage(file.FullName));
-
-                    //wrapPanel.Children.Add(button);
                     wrapPanel.Children.Add(textBlock);
-                    lbx.Children.Add(wrapPanel);
+                    viewer.Children.Add(wrapPanel);
                 }
 
                 // 항목 개수 표시
-                count.Text = $"{lbx.Children.Count}개 항목";
+                count.Text = $"{viewer.Children.Count}개 항목";
             }
             catch (Exception ex)
             {
@@ -441,7 +434,8 @@ namespace FileExplorer
             }
         }
 
-        private void CheckLog()
+        //버튼 활성화
+        private void CheckLogButton()
         {
             if (log.Count > 0)
             {
@@ -460,6 +454,141 @@ namespace FileExplorer
             {
                 forwardButton.IsEnabled = false;
             }
+        }
+
+        private void CheckLog(string currentLocation)
+        {
+            if (log.Count != 0)
+            {
+                string check = log.Pop();
+                if (check != currentLocation)
+                {
+                    log.Push(check);
+                    log.Push(currentLocation);
+                }
+
+                else
+                {
+                    log.Push(currentLocation);
+                }
+            }
+            
+            else
+            {
+                log.Push(currentLocation);
+            }
+
+            CheckLogButton();
+        }
+
+        private void Search_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter || e.Key == Key.Tab)
+            {
+                if (search.Text != "")
+                {
+                    string str = search.Text;
+                    Search(str);
+                }
+
+                else
+                {
+                    MessageBox.Show("검색어를 입력해주세요.");
+                }
+            }
+        }
+
+        private void SearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (search.Text != "")
+            {
+                string str = search.Text;
+                Search(str);
+            }
+
+            else
+            {
+                MessageBox.Show("검색어를 입력해주세요.");
+            }
+        }
+
+        private void Search(string str)
+        {
+            viewer.Children.Clear();
+            DirectoryInfo baseDi = new DirectoryInfo(currentLocations);
+            DirectoryInfo[] childrenDI = baseDi.GetDirectories();
+
+            for (int i = 0; i < childrenDI.Length; i++)
+            { 
+                //폴더 불러오기
+                if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
+                {
+                    if (childrenDI[i].Name.Contains(str))
+                    {
+                        TreeViewItem subItem = new TreeViewItem();
+                        subItem.Header = childrenDI[i].Name;
+                        subItem.Tag = childrenDI[i].FullName;
+                        subItem.ToolTip = childrenDI[i].Name;
+                        subItem.Expanded += new RoutedEventHandler(List_Expanded);
+
+                        WrapPanel wrapPanel = new WrapPanel();
+                        wrapPanel.Orientation = Orientation.Vertical;
+                        wrapPanel.Width = 100;
+                        wrapPanel.Height = 100;
+
+                        TextBlock textBlock = new TextBlock();
+                        textBlock.Text = childrenDI[i].Name.ToString();
+                        textBlock.Width = 90;
+                        textBlock.TextWrapping = TextWrapping.Wrap;
+
+                        Button button = new Button();
+                        button.Width = 100;
+                        button.Height = 60;
+                        button.Tag = childrenDI[i].FullName.ToString();
+                        button.ToolTip = childrenDI[i].Name.ToString();
+                        button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
+                        button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
+
+                        wrapPanel.Children.Add(button);
+                        wrapPanel.Children.Add(textBlock);
+                        viewer.Children.Add(wrapPanel);
+                    }
+                }
+            }
+
+            // 파일 불러오기
+            FileInfo[] files = baseDi.GetFiles();
+
+            var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden)); //숨겨진 파일 아닌것만
+
+            foreach (var file in filtered)
+            {
+                if (file.Name.Contains(str))
+                {
+                    WrapPanel wrapPanel = new WrapPanel();
+                    wrapPanel.Width = 100;
+                    wrapPanel.Height = 100;
+
+                    Button button = new Button();
+                    button.Background = new ImageBrush(GetImage(file.FullName));
+                    button.Margin = new Thickness(5);
+                    button.Height = 60;
+                    button.Width = 60;
+                    button.Tag = file.FullName.ToString();
+                    button.MouseDoubleClick += Button_Click;
+                    wrapPanel.Children.Add(button);
+
+                    TextBlock textBlock = new TextBlock();
+                    textBlock.Text = file.Name;
+                    textBlock.TextWrapping = TextWrapping.Wrap;
+                    textBlock.Width = 90;
+
+                    wrapPanel.Children.Add(textBlock);
+                    viewer.Children.Add(wrapPanel);
+                }
+            }
+            // 항목 개수 표시
+            count.Text = $"{viewer.Children.Count}개 항목";
         }
     }
 }
