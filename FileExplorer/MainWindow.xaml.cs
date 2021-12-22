@@ -213,7 +213,7 @@ namespace FileExplorer
             }
 
             DirectoryInfo baseDi = new DirectoryInfo(subList.Tag.ToString());
-            
+
             CheckLog(subList.Tag.ToString());
             beforeLog.Clear();
             CheckLogButton();
@@ -309,7 +309,7 @@ namespace FileExplorer
 
                 DirectoryInfo baseDi = new DirectoryInfo(subList);
                 ViewList(baseDi);
-                CreateLocation(subList);                
+                CreateLocation(subList);
             }
 
             CheckLogButton();
@@ -336,13 +336,16 @@ namespace FileExplorer
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
         {
+            beforeLog.Clear();
             string home = "C:\\";
+            CheckLog(home);
             DirectoryInfo baseDi = new DirectoryInfo(home);
             viewer.Children.Clear();
             CreateLocation(home);
             ViewList(baseDi);
             CheckLogButton();
         }
+
 
         private ImageSource GetImage(string imageTag)
         {
@@ -355,83 +358,86 @@ namespace FileExplorer
 
         private void ViewList(DirectoryInfo directoryInfo)
         {
-            DirectoryInfo[] childrenDI = directoryInfo.GetDirectories();
-            viewer.Children.Clear();
-            search.Text = "";
+                DirectoryInfo[] childrenDI = directoryInfo.GetDirectories();
+                viewer.Children.Clear();
+                search.Text = "";
 
-            try
-            {
-                for (int i = 0; i < childrenDI.Length; i++)
-                {  
-                    //폴더
-                    if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
+                try
+                {
+                    for (int i = 0; i < childrenDI.Length; i++)
                     {
-                        TreeViewItem subItem = new TreeViewItem();
-                        subItem.Header = childrenDI[i].Name;
-                        subItem.Tag = childrenDI[i].FullName;
-                        subItem.ToolTip = childrenDI[i].Name;
-                        subItem.Expanded += new RoutedEventHandler(List_Expanded);
+                        //폴더
+                        if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
+                        {
+                            TreeViewItem subItem = new TreeViewItem();
+                            subItem.Header = childrenDI[i].Name;
+                            subItem.Tag = childrenDI[i].FullName;
+                            subItem.ToolTip = childrenDI[i].Name;
+                            subItem.Expanded += new RoutedEventHandler(List_Expanded);
 
+                            WrapPanel wrapPanel = new WrapPanel();
+                            wrapPanel.Orientation = Orientation.Vertical;
+                            wrapPanel.Width = 100;
+                            wrapPanel.Height = 100;
+
+                            TextBlock textBlock = new TextBlock();
+                            textBlock.Text = childrenDI[i].Name.ToString();
+                            textBlock.Width = 90;
+                            textBlock.TextWrapping = TextWrapping.Wrap;
+
+                            Button button = new Button();
+                            button.Width = 100;
+                            button.Height = 60;
+                            button.Tag = childrenDI[i].FullName.ToString();
+                            button.ToolTip = childrenDI[i].Name.ToString();
+                            button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
+                            button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
+
+                            wrapPanel.Children.Add(button);
+                            wrapPanel.Children.Add(textBlock);
+                            viewer.Children.Add(wrapPanel);
+                        }
+                    }
+
+                    // 파일 불러오기
+                    FileInfo[] files = directoryInfo.GetFiles();
+
+                    var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden)); //숨겨진 파일 아닌것만
+
+                    foreach (var file in filtered)
+                    {
                         WrapPanel wrapPanel = new WrapPanel();
-                        wrapPanel.Orientation = Orientation.Vertical;
                         wrapPanel.Width = 100;
                         wrapPanel.Height = 100;
 
-                        TextBlock textBlock = new TextBlock();
-                        textBlock.Text = childrenDI[i].Name.ToString();
-                        textBlock.Width = 90;
-                        textBlock.TextWrapping = TextWrapping.Wrap;
-
                         Button button = new Button();
-                        button.Width = 100;
+                        button.Background = new ImageBrush(GetImage(file.FullName));
+                        button.Margin = new Thickness(5);
                         button.Height = 60;
-                        button.Tag = childrenDI[i].FullName.ToString();
-                        button.ToolTip = childrenDI[i].Name.ToString();
-                        button.PreviewMouseDoubleClick += Button_PreviewMouseDoubleClick;
-                        button.Background = new ImageBrush(new BitmapImage(new Uri("C:\\Users\\kty30\\source\\repos\\FileExplorer\\FileExplorer\\bin\\Debug\\folderImage.png")));
-
+                        button.Width = 60;
+                        button.Tag = file.FullName.ToString();
+                        button.ToolTip = file.Name.ToString();
+                        button.MouseDoubleClick += Button_Click;
                         wrapPanel.Children.Add(button);
+
+                        TextBlock textBlock = new TextBlock();
+                        textBlock.Text = file.Name;
+                        textBlock.TextWrapping = TextWrapping.Wrap;
+                        textBlock.Width = 90;
+
                         wrapPanel.Children.Add(textBlock);
                         viewer.Children.Add(wrapPanel);
                     }
+
+                    // 항목 개수 표시
+                    count.Text = $"{viewer.Children.Count}개 항목";
                 }
-
-                // 파일 불러오기
-                FileInfo[] files = directoryInfo.GetFiles();
-
-                var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden)); //숨겨진 파일 아닌것만
-
-                foreach (var file in filtered)
+                catch (Exception ex)
                 {
-                    WrapPanel wrapPanel = new WrapPanel();
-                    wrapPanel.Width = 100;
-                    wrapPanel.Height = 100;
-
-                    Button button = new Button();
-                    button.Background = new ImageBrush(GetImage(file.FullName));
-                    button.Margin = new Thickness(5);
-                    button.Height = 60;
-                    button.Width = 60;
-                    button.Tag = file.FullName.ToString();
-                    button.MouseDoubleClick += Button_Click;
-                    wrapPanel.Children.Add(button);
-
-                    TextBlock textBlock = new TextBlock();
-                    textBlock.Text = file.Name;
-                    textBlock.TextWrapping = TextWrapping.Wrap;
-                    textBlock.Width = 90;
-
-                    wrapPanel.Children.Add(textBlock);
-                    viewer.Children.Add(wrapPanel);
+                    MessageBox.Show("에러 발생 : " + ex.Message);
                 }
 
-                // 항목 개수 표시
-                count.Text = $"{viewer.Children.Count}개 항목";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("에러 발생 : " + ex.Message);
-            }
+
         }
 
         //버튼 활성화
@@ -472,7 +478,7 @@ namespace FileExplorer
                     log.Push(currentLocation);
                 }
             }
-            
+
             else
             {
                 log.Push(currentLocation);
@@ -519,7 +525,7 @@ namespace FileExplorer
             DirectoryInfo[] childrenDI = baseDi.GetDirectories();
 
             for (int i = 0; i < childrenDI.Length; i++)
-            { 
+            {
                 //폴더 불러오기
                 if ((childrenDI[i].Attributes & FileAttributes.Hidden) != FileAttributes.Hidden) //숨겨진 파일 아닌것만
                 {
@@ -590,5 +596,7 @@ namespace FileExplorer
             // 항목 개수 표시
             count.Text = $"{viewer.Children.Count}개 항목";
         }
+
+
     }
 }
